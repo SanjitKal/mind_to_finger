@@ -14,6 +14,10 @@ function clean_data = filter_data_release(raw_eeg)
     %
     % Output:   clean_adata (samples x channels)
     % 
-%% Your code here (2 points) 
-clean_data = bandpass(raw_eeg, [60,100], 1000);
+%% Your code here (2 points)
+clean_data = zeros(length(raw_eeg(:,1)), length(raw_eeg(1,:)));
+for i = 1:length(raw_eeg(:,1))
+    ch_avg = mean(raw_eeg(i,:));
+    clean_data(i,:) = arrayfun(@(x) x - ch_avg, raw_eeg(i,:));
 end
+clean_data = lowpass(clean_data, 30, 1000);

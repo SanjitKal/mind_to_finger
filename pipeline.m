@@ -38,14 +38,14 @@ glove_3_train = glove_3{1}(1:200000,1:5);
 glove_3_test = glove_3{1}(200001:300000,1:5);
 ecog_3_train = ecog_3{1}(1:200000, 1:num_ch_3);
 ecog_3_test = ecog_3{1}(200001:300000, 1:num_ch_3);
-
-% There are 300000 samples per channel for all the subjects, although
-% the number of channels differs per subject (see the num_ch variables
-% for the number of channels for each subject).
-
 %% Filter Function
 % We used the bandpass filter type with a passband range of 60-100hz.
 test_filtered = filter_data(ecog_1_train);
+hold on;
+plot(test_filtered(1:100,1));
+plot(ecog_1_train(1:100,1));
+legend("filtered", "regular");
+hold off;
 %% Get Features
 % run getWindowedFeats_release function
 ecog_1_train_feats = getWindowedFeats(ecog_1_train, 1000, .1, .05);
