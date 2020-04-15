@@ -39,7 +39,8 @@ glove_3_test = glove_3{1}(200001:300000,1:5);
 ecog_3_train = ecog_3{1}(1:200000, 1:num_ch_3);
 ecog_3_test = ecog_3{1}(200001:300000, 1:num_ch_3);
 %% Filter Function
-% We used the bandpass filter type with a passband range of 60-100hz.
+% We used common average referencing (CAR) and a low pass filter after
+% applying CAR with a cutoff at 60hz.
 test_filtered = filter_data(ecog_1_train);
 hold on;
 plot(test_filtered(1:100,1));
@@ -48,13 +49,15 @@ legend("filtered", "regular");
 hold off;
 %% Get Features
 % run getWindowedFeats_release function
-ecog_1_train_feats = getWindowedFeats(ecog_1_train, 1000, .1, .05);
-ecog_2_train_feats = getWindowedFeats(ecog_2_train, 1000, .1, .05);
-ecog_3_train_feats = getWindowedFeats(ecog_3_train, 1000, .1, .05);
-
-ecog_1_test_feats = getWindowedFeats(ecog_1_test, 1000, .1, .05);
-ecog_2_test_feats = getWindowedFeats(ecog_2_test, 1000, .1, .05);
-ecog_3_test_feats = getWindowedFeats(ecog_3_test, 1000, .1, .05);
+test_feats = getWindowedFeats(ecog_1_train(1:1000,:), 1000, .1, .05);
+% ecog_1_train_feats = getWindowedFeats(ecog_1_train, 1000, .1, .05);
+% ecog_1_train_feats = getWindowedFeats(ecog_1_train, 1000, .1, .05);
+% ecog_2_train_feats = getWindowedFeats(ecog_2_train, 1000, .1, .05);
+% ecog_3_train_feats = getWindowedFeats(ecog_3_train, 1000, .1, .05);
+% 
+% ecog_1_test_feats = getWindowedFeats(ecog_1_test, 1000, .1, .05);
+% ecog_2_test_feats = getWindowedFeats(ecog_2_test, 1000, .1, .05);
+% ecog_3_test_feats = getWindowedFeats(ecog_3_test, 1000, .1, .05);
 % The number of time bins/time windows is 3999 (the expression 
 % to calculate this is in getWindowedFeats function and stored in the
 % variable "num_windows"
