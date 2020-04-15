@@ -51,13 +51,16 @@ hold off;
 % run getWindowedFeats_release function
 % test_feats = getWindowedFeats(ecog_1_train(1:1000,:), 1000, .1, .05);
 ecog_1_train_feats = getWindowedFeats(ecog_1_train, 1000, .1, .05);
-% ecog_1_train_feats = getWindowedFeats(ecog_1_train, 1000, .1, .05);
-% ecog_2_train_feats = getWindowedFeats(ecog_2_train, 1000, .1, .05);
-% ecog_3_train_feats = getWindowedFeats(ecog_3_train, 1000, .1, .05);
+%%
+ecog_2_train_feats = getWindowedFeats(ecog_2_train, 1000, .1, .05);
+%%
+ecog_3_train_feats = getWindowedFeats(ecog_3_train, 1000, .1, .05);
 %%
 ecog_1_test_feats = getWindowedFeats(ecog_1_test, 1000, .1, .05);
-% ecog_2_test_feats = getWindowedFeats(ecog_2_test, 1000, .1, .05);
-% ecog_3_test_feats = getWindowedFeats(ecog_3_test, 1000, .1, .05);
+%%
+ecog_2_test_feats = getWindowedFeats(ecog_2_test, 1000, .1, .05);
+%%
+ecog_3_test_feats = getWindowedFeats(ecog_3_test, 1000, .1, .05);
 %% Create R matrix
 
 % In response to the question:
@@ -65,12 +68,12 @@ ecog_1_test_feats = getWindowedFeats(ecog_1_test, 1000, .1, .05);
 % that the number of features used is 4.
 
 ecog_1_train_R = create_R_matrix(ecog_1_train_feats, 3);
-% ecog_2_train_R = create_R_matrix(ecog_2_train_feats, 3);
-% ecog_3_train_R = create_R_matrix(ecog_3_train_feats, 3);
+ecog_2_train_R = create_R_matrix(ecog_2_train_feats, 3);
+ecog_3_train_R = create_R_matrix(ecog_3_train_feats, 3);
 %%
 ecog_1_test_R = create_R_matrix(ecog_1_test_feats, 3);
-% ecog_2_test_R = create_R_matrix(ecog_2_test_feats, 3);
-% ecog_3_test_R = create_R_matrix(ecog_3_test_feats, 3);
+ecog_2_test_R = create_R_matrix(ecog_2_test_feats, 3);
+ecog_3_test_R = create_R_matrix(ecog_3_test_feats, 3);
 %% Train classifiers (8 points)
 % Classifier 1: Get angle predictions using optimal linear decoding. That is, 
 % calculate the linear filter (i.e. the weights matrix) as defined by 
@@ -82,16 +85,19 @@ chunk_sz = floor(length(glove_1_train(:,1))/length(ecog_1_train_R(:,1)));
 num_chunks = length(glove_1_train(:,1)) / chunk_sz;
 
 glove_1_train_ds = zeros(num_chunks, length(glove_1_train(1,:)));
+glove_2_train_ds = zeros(num_chunks, length(glove_2_train(1,:)));
+glove_3_train_ds = zeros(num_chunks, length(glove_3_train(1,:)));
 
-for i = 1:length(glove_1_train(1,:))
+for i = 1:5
     glove_1_train_ds(:,i) = decimate(glove_1_train(:,i), chunk_sz);
+    glove_2_train_ds(:,i) = decimate(glove_2_train(:,i), chunk_sz);
+    glove_3_train_ds(:,i) = decimate(glove_2_train(:,i), chunk_sz);
 end
-% glove_2_train_ds = decimate(glove_2_train, chunk_sz);
-% glove_3_train_ds = decimate(glove_3_train, chunk_sz);
+%%
 
 ecog_1_train_R_ext = [ecog_1_train_R; ecog_1_train_R(length(ecog_1_train_R(:,1)),:)];
-% ecog_2_train_R_ext = [ecog_2_train_R; ecog_2_train_R(length(ecog_2_train_R(:,1)),:)];
-% ecog_3_train_R_ext = [ecog_3_train_R; ecog_3_train_R(length(ecog_3_train_R(:,1)),:)];
+ecog_2_train_R_ext = [ecog_2_train_R; ecog_2_train_R(length(ecog_2_train_R(:,1)),:)];
+ecog_3_train_R_ext = [ecog_3_train_R; ecog_3_train_R(length(ecog_3_train_R(:,1)),:)];
 
 %create filters
 f11 = mldivide(ecog_1_train_R_ext.'*ecog_1_train_R_ext,ecog_1_train_R_ext.'*glove_1_train_ds(:,1));
@@ -100,22 +106,22 @@ f13 = mldivide(ecog_1_train_R_ext.'*ecog_1_train_R_ext,ecog_1_train_R_ext.'*glov
 f14 = mldivide(ecog_1_train_R_ext.'*ecog_1_train_R_ext,ecog_1_train_R_ext.'*glove_1_train_ds(:,4));
 f15 = mldivide(ecog_1_train_R_ext.'*ecog_1_train_R_ext,ecog_1_train_R_ext.'*glove_1_train_ds(:,5));
 
-% f21 = mldivide(ecog_2_train_R_ext.'*ecog_2_train_R_ext,ecog_2_train_R_ext.'*glove_2_train_ds(:,1));
-% f22 = mldivide(ecog_2_train_R_ext.'*ecog_2_train_R_ext,ecog_2_train_R_ext.'*glove_2_train_ds(:,2));
-% f23 = mldivide(ecog_2_train_R_ext.'*ecog_2_train_R_ext,ecog_2_train_R_ext.'*glove_2_train_ds(:,3));
-% f24 = mldivide(ecog_2_train_R_ext.'*ecog_2_train_R_ext,ecog_2_train_R_ext.'*glove_2_train_ds(:,4));
-% f25 = mldivide(ecog_2_train_R_ext.'*ecog_2_train_R_ext,ecog_2_train_R_ext.'*glove_2_train_ds(:,5));
-% 
-% f31 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,1));
-% f32 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,2));
-% f33 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,3));
-% f34 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,4));
-% f35 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,5));
+f21 = mldivide(ecog_2_train_R_ext.'*ecog_2_train_R_ext,ecog_2_train_R_ext.'*glove_2_train_ds(:,1));
+f22 = mldivide(ecog_2_train_R_ext.'*ecog_2_train_R_ext,ecog_2_train_R_ext.'*glove_2_train_ds(:,2));
+f23 = mldivide(ecog_2_train_R_ext.'*ecog_2_train_R_ext,ecog_2_train_R_ext.'*glove_2_train_ds(:,3));
+f24 = mldivide(ecog_2_train_R_ext.'*ecog_2_train_R_ext,ecog_2_train_R_ext.'*glove_2_train_ds(:,4));
+f25 = mldivide(ecog_2_train_R_ext.'*ecog_2_train_R_ext,ecog_2_train_R_ext.'*glove_2_train_ds(:,5));
+
+f31 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,1));
+f32 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,2));
+f33 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,3));
+f34 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,4));
+f35 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,5));
 
 %%
 ecog_1_test_R_ext = [ecog_1_test_R;zeros(1,length(ecog_1_test_R(1,:)))];
-% ecog_2_test_R_ext = [ecog_2_test_R;zeros(1,length(ecog_2_test_R(1,:)))];
-% ecog_3_test_R_ext = [ecog_3_test_R;zeros(1,length(ecog_3_test_R(1,:)))];
+ecog_2_test_R_ext = [ecog_2_test_R;zeros(1,length(ecog_2_test_R(1,:)))];
+ecog_3_test_R_ext = [ecog_3_test_R;zeros(1,length(ecog_3_test_R(1,:)))];
 
 p11 = ecog_1_test_R_ext*f11;
 p12 = ecog_1_test_R_ext*f12;
@@ -123,54 +129,80 @@ p13 = ecog_1_test_R_ext*f13;
 p14 = ecog_1_test_R_ext*f14;
 p15 = ecog_1_test_R_ext*f15;
 
-% p21 = ecog_2_test_R_ext*f21;
-% p22 = ecog_2_test_R_ext*f22;
-% p23 = ecog_2_test_R_ext*f23;
-% p24 = ecog_2_test_R_ext*f24;
-% p25 = ecog_2_test_R_ext*f25;
-% 
-% p31 = ecog_3_test_R_ext*f31;
-% p32 = ecog_3_test_R_ext*f32;
-% p33 = ecog_3_test_R_ext*f33;
-% p34 = ecog_3_test_R_ext*f34;
-% p35 = ecog_3_test_R_ext*f35;
+p21 = ecog_2_test_R_ext*f21;
+p22 = ecog_2_test_R_ext*f22;
+p23 = ecog_2_test_R_ext*f23;
+p24 = ecog_2_test_R_ext*f24;
+p25 = ecog_2_test_R_ext*f25;
+ 
+p31 = ecog_3_test_R_ext*f31;
+p32 = ecog_3_test_R_ext*f32;
+p33 = ecog_3_test_R_ext*f33;
+p34 = ecog_3_test_R_ext*f34;
+p35 = ecog_3_test_R_ext*f35;
 %% Correlate data to get test accuracy and make figures (2 point)
 
 % Calculate accuracy by correlating predicted and actual angles for each
 % finger separately. Hint: You will want to use zohinterp to ensure both 
 % vectors are the same length.
-x = linspace(1,length(p11),length(p11));
-xq = linspace(1,length(p11),length(glove_1_test(:,1)));
+x1 = linspace(1,length(p11),length(p11));
+xq1 = linspace(1,length(p11),length(glove_1_test(:,1)));
 
 p11_full = spline(x,p11,xq);
 p12_full = spline(x,p12,xq);
 p13_full = spline(x,p13,xq);
-p14_full = spline(x,p14,xq);
 p15_full = spline(x,p15,xq);
+
+x2 = linspace(1,length(p21),length(p21));
+xq2 = linspace(1,length(p21),length(glove_2_test(:,1)));
+
+p21_full = spline(x,p21,xq);
+p22_full = spline(x,p22,xq);
+p23_full = spline(x,p23,xq);
+p25_full = spline(x,p25,xq);
+
+x3 = linspace(1,length(p31),length(p31));
+xq3 = linspace(1,length(p31),length(glove_3_test(:,1)));
+
+p31_full = spline(x,p31,xq);
+p32_full = spline(x,p32,xq);
+p33_full = spline(x,p33,xq);
+p35_full = spline(x,p35,xq);
 %%
 R11 = corr(p11_full.', glove_1_test(:,1));
 R12 = corr(p12_full.', glove_1_test(:,2));
 R13 = corr(p13_full.', glove_1_test(:,3));
-R14 = corr(p14_full.', glove_1_test(:,4));
 R15 = corr(p15_full.', glove_1_test(:,5));
 
-% R21 = corrcoef(p21, glove_2_test_ds(:,1));
-% R22 = corrcoef(p22, glove_2_test_ds(:,2));
-% R23 = corrcoef(p23, glove_2_test_ds(:,3));
-% R24 = corrcoef(p24, glove_2_test_ds(:,4));
-% R25 = corrcoef(p25, glove_2_test_ds(:,5));
-% 
-% R31 = corrcoef(p31, glove_3_test_ds(:,1));
-% R32 = corrcoef(p32, glove_3_test_ds(:,2));
-% R33 = corrcoef(p33, glove_3_test_ds(:,3));
-% R34 = corrcoef(p34, glove_3_test_ds(:,4));
-% R35 = corrcoef(p35, glove_3_test_ds(:,5));
-%%
+R21 = corr(p21_full.', glove_2_test(:,1));
+R22 = corr(p22_full.', glove_2_test(:,2));
+R23 = corr(p23_full.', glove_2_test(:,3));
+R25 = corr(p25_full.', glove_2_test(:,5));
 
-scatter([1,2,3,4,5], [R11, R12, R13, R14, R15])
+R31 = corr(p31_full.', glove_3_test(:,1));
+R32 = corr(p32_full.', glove_3_test(:,2));
+R33 = corr(p33_full.', glove_3_test(:,3));
+R35 = corr(p35_full.', glove_3_test(:,5));
+%%
+scatter([1,2,3,5], [R11, R12, R13, R15])
 title("R value for pred. & actual angles for subject 1")
 xlabel("finger number")
 ylabel("R value")
+%%
+scatter([1,2,3,5], [R21, R22, R23, R25])
+title("R value for pred. & actual angles for subject 2")
+xlabel("finger number")
+ylabel("R value")
+%%
+scatter([1,2,3,5], [R31, R32, R33, R35])
+title("R value for pred. & actual angles for subject 3")
+xlabel("finger number")
+ylabel("R value")
+%%
+average_R1 = mean([R11, R12, R13, R15])
+average_R2 = mean([R21, R22, R23, R25])
+average_R3 = mean([R21, R22, R23, R25])
+average_R = mean([average_R1, average_R2, average_R3])
 % scatter([1,2,3,4,5], [R21, R22, R23, R24, R25])
 % title("R value for pred. & actual angles for subject 2")
 % xlabel("finger number")
