@@ -79,14 +79,19 @@ ecog_1_test_R = create_R_matrix(ecog_1_test_feats, 3);
 % downsample the gloves
 
 chunk_sz = floor(length(glove_1_train(:,1))/length(ecog_1_train_R(:,1)));
+num_chunks = length(glove_1_train(:,1)) / chunk_sz;
 
-glove_1_train_ds = decimate(glove_1_train, chunk_sz);
+glove_1_train_ds = zeros(num_chunks, length(glove_1_train(1,:)));
+
+for i = 1:length(glove_1_train(1,:))
+    glove_1_train_ds(:,i) = decimate(glove_1_train(:,i), chunk_sz);
+end
 % glove_2_train_ds = decimate(glove_2_train, chunk_sz);
 % glove_3_train_ds = decimate(glove_3_train, chunk_sz);
 
 ecog_1_train_R_ext = [ecog_1_train_R; ecog_1_train_R(length(ecog_1_train_R(:,1)),:)];
-ecog_2_train_R_ext = [ecog_2_train_R; ecog_2_train_R(length(ecog_2_train_R(:,1)),:)];
-ecog_3_train_R_ext = [ecog_3_train_R; ecog_3_train_R(length(ecog_3_train_R(:,1)),:)];
+% ecog_2_train_R_ext = [ecog_2_train_R; ecog_2_train_R(length(ecog_2_train_R(:,1)),:)];
+% ecog_3_train_R_ext = [ecog_3_train_R; ecog_3_train_R(length(ecog_3_train_R(:,1)),:)];
 
 %create filters
 f11 = mldivide(ecog_1_train_R_ext.'*ecog_1_train_R_ext,ecog_1_train_R_ext.'*glove_1_train_ds(:,1));
@@ -134,15 +139,20 @@ p15 = ecog_1_test_R_ext*f15;
 % Calculate accuracy by correlating predicted and actual angles for each
 % finger separately. Hint: You will want to use zohinterp to ensure both 
 % vectors are the same length.
+x = linspace(1,length(p11),length(p11));
+xq = linspace(1,length(p11),length(glove_1_test(:,1)));
 
-% Doing this only for the optimal linear decoder since the processs
-% is the very similar for the alternative classifier
-
-R11 = corr(p11, glove_1_test(:,1));
-R12 = corr(p12, glove_1_test(:,2));
-R13 = corr(p13, glove_1_test(:,3));
-R14 = corr(p14, glove_1_test(:,4));
-R15 = corr(p15, glove_1_test(:,5));
+p11_full = spline(x,p11,xq);
+p12_full = spline(x,p12,xq);
+p13_full = spline(x,p13,xq);
+p14_full = spline(x,p14,xq);
+p15_full = spline(x,p15,xq);
+%%
+R11 = corr(p11_full.', glove_1_test(:,1));
+R12 = corr(p12_full.', glove_1_test(:,2));
+R13 = corr(p13_full.', glove_1_test(:,3));
+R14 = corr(p14_full.', glove_1_test(:,4));
+R15 = corr(p15_full.', glove_1_test(:,5));
 
 % R21 = corrcoef(p21, glove_2_test_ds(:,1));
 % R22 = corrcoef(p22, glove_2_test_ds(:,2));
@@ -155,21 +165,20 @@ R15 = corr(p15, glove_1_test(:,5));
 % R33 = corrcoef(p33, glove_3_test_ds(:,3));
 % R34 = corrcoef(p34, glove_3_test_ds(:,4));
 % R35 = corrcoef(p35, glove_3_test_ds(:,5));
+%%
 
-subplot(2,2,1)
 scatter([1,2,3,4,5], [R11, R12, R13, R14, R15])
 title("R value for pred. & actual angles for subject 1")
 xlabel("finger number")
 ylabel("R value")
-subplot(2,2,2)
-scatter([1,2,3,4,5], [R21, R22, R23, R24, R25])
-title("R value for pred. & actual angles for subject 2")
-xlabel("finger number")
-ylabel("R value")
-subplot(2,2,3)
-scatter([1,2,3,4,5], [R31, R32, R33, R34, R35])
-title("R value for pred. & actual angles for subject 3")
-xlabel("finger number")
-ylabel("R value")
+% scatter([1,2,3,4,5], [R21, R22, R23, R24, R25])
+% title("R value for pred. & actual angles for subject 2")
+% xlabel("finger number")
+% ylabel("R value")
+% subplot(2,2,3)
+% scatter([1,2,3,4,5], [R31, R32, R33, R34, R35])
+% title("R value for pred. & actual angles for subject 3")
+% xlabel("finger number")
+% ylabel("R value")
 
 
