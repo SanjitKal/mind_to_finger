@@ -20,7 +20,7 @@ num_ch_1 = 61;
 num_ch_2 = 46;
 num_ch_3 = 64;
 
-% num_ch_1 = 4; %Only use channels 18-22
+% num_ch_1 = 4; %Only use channels 15-25
 % num_ch_2 = 4; %Only use channels 18-22
 % num_ch_3 = 4; %Only use channels 18-22
 
@@ -45,8 +45,8 @@ ecog_3_test = ecog_3{1}(200001:300000, 1:num_ch_3);
 
 % glove_1_train = glove_1{1}(1:200000,1:5);
 % glove_1_test = glove_1{1}(200001:300000,1:5);
-% ecog_1_train = ecog_1{1}(1:200000, 18:22);
-% ecog_1_test = ecog_1{1}(200001:300000, 18:22);
+% ecog_1_train = ecog_1{1}(1:200000, 15:25);
+% ecog_1_test = ecog_1{1}(200001:300000, 15:25);
 %  
 % glove_2_train = glove_2{1}(1:200000,1:5);
 % glove_2_test = glove_2{1}(200001:300000,1:5);
@@ -88,6 +88,92 @@ ecog_1_test_feats = getWindowedFeats(ecog_1_test, 1000, .1, .05);
 ecog_2_test_feats = getWindowedFeats(ecog_2_test, 1000, .1, .05);
 %%
 ecog_3_test_feats = getWindowedFeats(ecog_3_test, 1000, .1, .05);
+%%
+% Compute correlations across featues on specific channels between
+% specific fingers on the training data.
+
+corr_mat_1 = zeros(5, length(ecog_1_train_feats(1,:)));
+corr_mat_2 = zeros(5, length(ecog_2_train_feats(1,:)));
+corr_mat_3 = zeros(5, length(ecog_3_train_feats(1,:)));
+
+% corr_mat_i(j,k) = correlation between finger j and feature
+% ceil(k/num_ch_k) on channel k%num_ch_k for subject i.
+
+num_feats = 6;
+
+for i = 1:5
+    for j = 1:length(ecog_1_train_feats(1,:))
+        corr_mat_1(i,j) = corr(ecog_1_train_feats(:,j), glove_1_train_ds(1:end-1,i));
+    end
+    
+    for j = 1:length(ecog_2_train_feats(1,:))
+        corr_mat_2(i,j) = corr(ecog_2_train_feats(:,j), glove_2_train_ds(1:end-1,i));
+    end
+    
+    for j = 1:length(ecog_3_train_feats(1,:))
+        corr_mat_3(i,j) = corr(ecog_3_train_feats(:,j), glove_3_train_ds(1:end-1,i));
+    end
+end
+%%
+%subject 1 finger 1 
+feat_ch_r_11 = zeros(num_ch_1, num_feats);
+for i = 1:length(corr_mat_1(1,:))
+    ch_idx = mod(i,num_ch_1) + 1;
+    feat_idx = ceil(i/num_ch_1);
+    feat_ch_r_11(ch_idx, feat_idx) = corr_mat_1(1, i);
+end
+% ch 44 is a peak (features 4 5 6) for subject 1
+%%
+%subject 1 finger 2
+feat_ch_r_12 = zeros(num_ch_1, num_feats);
+for i = 1:length(corr_mat_1(2,:))
+    ch_idx = mod(i,num_ch_1) + 1;
+    feat_idx = ceil(i/num_ch_1);
+    feat_ch_r_12(ch_idx, feat_idx) = corr_mat_1(2, i);
+end
+%%
+%subject 1 finger 2
+feat_ch_r_12 = zeros(num_ch_1, num_feats);
+for i = 1:length(corr_mat_1(2,:))
+    ch_idx = mod(i,num_ch_1) + 1;
+    feat_idx = ceil(i/num_ch_1);
+    feat_ch_r_12(ch_idx, feat_idx) = corr_mat_1(2, i);
+end
+%%
+%subject 2 finger 1
+feat_ch_r_21 = zeros(num_ch_2, num_feats);
+for i = 1:length(corr_mat_2(2,:))
+    ch_idx = mod(i,num_ch_2) + 1;
+    feat_idx = ceil(i/num_ch_2);
+    feat_ch_r_21(ch_idx, feat_idx) = corr_mat_2(1, i);
+end
+% channel 25 for subject 2 (last three features)
+%%
+%%
+%subject 2 finger 1
+feat_ch_r_21 = zeros(num_ch_2, num_feats);
+for i = 1:length(corr_mat_2(2,:))
+    ch_idx = mod(i,num_ch_2) + 1;
+    feat_idx = ceil(i/num_ch_2);
+    feat_ch_r_21(ch_idx, feat_idx) = corr_mat_2(1, i);
+end
+% channel 25 for subject 2 (last three features)
+%%
+%subject 3 finger 1
+feat_ch_r_31 = zeros(num_ch_3, num_feats);
+for i = 1:length(corr_mat_3(1,:))
+    ch_idx = mod(i,num_ch_3) + 1;
+    feat_idx = ceil(i/num_ch_3);
+    feat_ch_r_31(ch_idx, feat_idx) = corr_mat_3(1, i);
+end
+%%
+%subject 3 finger 2
+feat_ch_r_32 = zeros(num_ch_3, num_feats);
+for i = 1:length(corr_mat_3(1,:))
+    ch_idx = mod(i,num_ch_3) + 1;
+    feat_idx = ceil(i/num_ch_3);
+    feat_ch_r_32(ch_idx, feat_idx) = corr_mat_3(2, i);
+end
 %% Create R matrix
 ecog_1_train_R = create_R_matrix(ecog_1_train_feats, 3);
 ecog_2_train_R = create_R_matrix(ecog_2_train_feats, 3);
