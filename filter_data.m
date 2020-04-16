@@ -22,4 +22,4 @@ function clean_data = filter_data_release(raw_eeg)
 %     clean_data(i,:) = arrayfun(@(x) (x - avg), raw_eeg(i,:));
 % end
 clean_data = raw_eeg;
-% clean_data = lowpass(raw_eeg, 175, 1000);
+%clean_data = lowpass(raw_eeg, 175, 1000);
