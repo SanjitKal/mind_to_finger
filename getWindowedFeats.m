@@ -35,7 +35,7 @@ num_per_window = window_length*fs;
 num_per_overlap = window_overlap*fs;
 % number of windows
 num_windows = (num_samples/num_per_window)*(num_per_window/num_per_overlap) - 1;
-num_features = 6;
+num_features = 4;
 num_channels = length(clean_data(1,:));
 all_feats = zeros(num_windows, num_features*num_channels);
 

@@ -20,6 +20,10 @@ num_ch_1 = 61;
 num_ch_2 = 46;
 num_ch_3 = 64;
 
+% num_ch_1 = 4; %Only use channels 18-22
+% num_ch_2 = 4; %Only use channels 18-22
+% num_ch_3 = 4; %Only use channels 18-22
+
 % Split data into a train and test set (use at least 50% for training)
 num_train = 200000;
 num_test = 100000;
@@ -28,26 +32,47 @@ glove_1_train = glove_1{1}(1:200000,1:5);
 glove_1_test = glove_1{1}(200001:300000,1:5);
 ecog_1_train = ecog_1{1}(1:200000, 1:num_ch_1);
 ecog_1_test = ecog_1{1}(200001:300000, 1:num_ch_1);
- 
+  
 glove_2_train = glove_2{1}(1:200000,1:5);
 glove_2_test = glove_2{1}(200001:300000,1:5);
 ecog_2_train = ecog_2{1}(1:200000, 1:num_ch_2);
 ecog_2_test = ecog_2{1}(200001:300000, 1:num_ch_2);
- 
+  
 glove_3_train = glove_3{1}(1:200000,1:5);
 glove_3_test = glove_3{1}(200001:300000,1:5);
 ecog_3_train = ecog_3{1}(1:200000, 1:num_ch_3);
 ecog_3_test = ecog_3{1}(200001:300000, 1:num_ch_3);
+
+% glove_1_train = glove_1{1}(1:200000,1:5);
+% glove_1_test = glove_1{1}(200001:300000,1:5);
+% ecog_1_train = ecog_1{1}(1:200000, 18:22);
+% ecog_1_test = ecog_1{1}(200001:300000, 18:22);
+%  
+% glove_2_train = glove_2{1}(1:200000,1:5);
+% glove_2_test = glove_2{1}(200001:300000,1:5);
+% ecog_2_train = ecog_2{1}(1:200000, 18:22);
+% ecog_2_test = ecog_2{1}(200001:300000, 18:22);
+%  
+% glove_3_train = glove_3{1}(1:200000,1:5);
+% glove_3_test = glove_3{1}(200001:300000,1:5);
+% ecog_3_train = ecog_3{1}(1:200000, 18:22);
+% ecog_3_test = ecog_3{1}(200001:300000, 18:22);
 %% Filter Function
-% We apply a low pass filter with a cutoff at 60hz and subsequently
-% normalize the filtered data via z-scores.
+% We apply CAR (common average referencing) to smooth the data
 test_filtered = filter_data(ecog_1_train);
 %%
 % plotting to make sure filter produces sensible results.
 hold on;
 plot(test_filtered(1:100,1));
 plot(ecog_1_train(1:100,1));
-legend("filtered", "regular");
+legend("filtered ch 20", "regular ch 20");
+hold off;
+%%
+% plotting to make sure filter produces sensible results.
+hold on;
+plot(test_filtered(1:100,2));
+plot(ecog_1_train(1:100,2));
+legend("filtered ch 22", "regular ch 22");
 hold off;
 %% Get Features
 % run getWindowedFeats_release function
@@ -64,11 +89,6 @@ ecog_2_test_feats = getWindowedFeats(ecog_2_test, 1000, .1, .05);
 %%
 ecog_3_test_feats = getWindowedFeats(ecog_3_test, 1000, .1, .05);
 %% Create R matrix
-
-% In response to the question:
-% The dimensions of the R_matrix would be (3999x(3*62*4)), assuming
-% that the number of features used is 4.
-
 ecog_1_train_R = create_R_matrix(ecog_1_train_feats, 3);
 ecog_2_train_R = create_R_matrix(ecog_2_train_feats, 3);
 ecog_3_train_R = create_R_matrix(ecog_3_train_feats, 3);
@@ -203,16 +223,6 @@ ylabel("R value")
 %%
 average_R1 = mean([R11, R12, R13, R15])
 average_R2 = mean([R21, R22, R23, R25])
-average_R3 = mean([R21, R22, R23, R25])
+average_R3 = mean([R31, R32, R33, R35])
 average_R = mean([average_R1, average_R2, average_R3])
-% scatter([1,2,3,4,5], [R21, R22, R23, R24, R25])
-% title("R value for pred. & actual angles for subject 2")
-% xlabel("finger number")
-% ylabel("R value")
-% subplot(2,2,3)
-% scatter([1,2,3,4,5], [R31, R32, R33, R34, R35])
-% title("R value for pred. & actual angles for subject 3")
-% xlabel("finger number")
-% ylabel("R value")
-
 
