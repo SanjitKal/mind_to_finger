@@ -39,9 +39,11 @@ glove_3_test = glove_3{1}(200001:300000,1:5);
 ecog_3_train = ecog_3{1}(1:200000, 1:num_ch_3);
 ecog_3_test = ecog_3{1}(200001:300000, 1:num_ch_3);
 %% Filter Function
-% We used common average referencing (CAR) and a low pass filter after
-% applying CAR with a cutoff at 60hz.
+% We apply a low pass filter with a cutoff at 60hz and subsequently
+% normalize the filtered data via z-scores.
 test_filtered = filter_data(ecog_1_train);
+%%
+% plotting to make sure filter produces sensible results.
 hold on;
 plot(test_filtered(1:100,1));
 plot(ecog_1_train(1:100,1));
@@ -145,29 +147,29 @@ p35 = ecog_3_test_R_ext*f35;
 % Calculate accuracy by correlating predicted and actual angles for each
 % finger separately. Hint: You will want to use zohinterp to ensure both 
 % vectors are the same length.
-x1 = linspace(1,length(p11),length(p11));
+x1 = linspace(1, length(p11),length(p11));
 xq1 = linspace(1,length(p11),length(glove_1_test(:,1)));
 
-p11_full = spline(x,p11,xq);
-p12_full = spline(x,p12,xq);
-p13_full = spline(x,p13,xq);
-p15_full = spline(x,p15,xq);
+p11_full = spline(x1,[0 p11.' 0],xq1);
+p12_full = spline(x1,[0 p12.' 0],xq1);
+p13_full = spline(x1,[0 p13.' 0],xq1);
+p15_full = spline(x1,[0 p15.' 0],xq1);
 
 x2 = linspace(1,length(p21),length(p21));
 xq2 = linspace(1,length(p21),length(glove_2_test(:,1)));
 
-p21_full = spline(x,p21,xq);
-p22_full = spline(x,p22,xq);
-p23_full = spline(x,p23,xq);
-p25_full = spline(x,p25,xq);
+p21_full = spline(x2,[0 p21.' 0],xq2);
+p22_full = spline(x2,[0 p22.' 0],xq2);
+p23_full = spline(x2,[0 p23.' 0],xq2);
+p25_full = spline(x2,[0 p25.' 0],xq2);
 
 x3 = linspace(1,length(p31),length(p31));
 xq3 = linspace(1,length(p31),length(glove_3_test(:,1)));
 
-p31_full = spline(x,p31,xq);
-p32_full = spline(x,p32,xq);
-p33_full = spline(x,p33,xq);
-p35_full = spline(x,p35,xq);
+p31_full = spline(x3,[0 p31.' 0],xq3);
+p32_full = spline(x3,[0 p32.' 0],xq3);
+p33_full = spline(x3,[0 p33.' 0],xq3);
+p35_full = spline(x3,[0 p35.' 0],xq3);
 %%
 R11 = corr(p11_full.', glove_1_test(:,1));
 R12 = corr(p12_full.', glove_1_test(:,2));
