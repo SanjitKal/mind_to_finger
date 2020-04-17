@@ -20,10 +20,6 @@ num_ch_1 = 61;
 num_ch_2 = 46;
 num_ch_3 = 64;
 
-% num_ch_1 = 4; %Only use channels 15-25
-% num_ch_2 = 4; %Only use channels 18-22
-% num_ch_3 = 4; %Only use channels 18-22
-
 % Split data into a train and test set (use at least 50% for training)
 num_train = 200000;
 num_test = 100000;
@@ -101,17 +97,22 @@ corr_mat_3 = zeros(5, length(ecog_3_train_feats(1,:)));
 
 num_feats = 6;
 
+num_1_samples = length(glove_1_train_ds(:,1));
+num_2_samples = length(glove_2_train_ds(:,1));
+num_3_samples = length(glove_3_train_ds(:,1));
+
+
 for i = 1:5
     for j = 1:length(ecog_1_train_feats(1,:))
-        corr_mat_1(i,j) = corr(ecog_1_train_feats(:,j), glove_1_train_ds(1:end-1,i));
+        corr_mat_1(i,j) = corr(ecog_1_train_feats(:,j), glove_1_train_ds(1:num_1_samples-1,i));
     end
     
     for j = 1:length(ecog_2_train_feats(1,:))
-        corr_mat_2(i,j) = corr(ecog_2_train_feats(:,j), glove_2_train_ds(1:end-1,i));
+        corr_mat_2(i,j) = corr(ecog_2_train_feats(:,j), glove_2_train_ds(1:num_2_samples-1,i));
     end
     
     for j = 1:length(ecog_3_train_feats(1,:))
-        corr_mat_3(i,j) = corr(ecog_3_train_feats(:,j), glove_3_train_ds(1:end-1,i));
+        corr_mat_3(i,j) = corr(ecog_3_train_feats(:,j), glove_3_train_ds(1:num_3_samples-1,i));
     end
 end
 %%
@@ -150,12 +151,12 @@ end
 % channel 25 for subject 2 (last three features)
 %%
 %%
-%subject 2 finger 1
-feat_ch_r_21 = zeros(num_ch_2, num_feats);
+%subject 2 finger 2
+feat_ch_r_22 = zeros(num_ch_2, num_feats);
 for i = 1:length(corr_mat_2(2,:))
     ch_idx = mod(i,num_ch_2) + 1;
     feat_idx = ceil(i/num_ch_2);
-    feat_ch_r_21(ch_idx, feat_idx) = corr_mat_2(1, i);
+    feat_ch_r_22(ch_idx, feat_idx) = corr_mat_2(1, i);
 end
 % channel 25 for subject 2 (last three features)
 %%
@@ -256,26 +257,26 @@ p35 = ecog_3_test_R_ext*f35;
 x1 = linspace(1, length(p11),length(p11));
 xq1 = linspace(1,length(p11),length(glove_1_test(:,1)));
 
-p11_full = spline(x1,[0 p11.' 0],xq1);
-p12_full = spline(x1,[0 p12.' 0],xq1);
-p13_full = spline(x1,[0 p13.' 0],xq1);
-p15_full = spline(x1,[0 p15.' 0],xq1);
+p11_full = interp1(x1,p11.',xq1);
+p12_full = interp1(x1,p12.',xq1);
+p13_full = interp1(x1,p13.',xq1);
+p15_full = interp1(x1,p15.',xq1);
 
 x2 = linspace(1,length(p21),length(p21));
 xq2 = linspace(1,length(p21),length(glove_2_test(:,1)));
 
-p21_full = spline(x2,[0 p21.' 0],xq2);
-p22_full = spline(x2,[0 p22.' 0],xq2);
-p23_full = spline(x2,[0 p23.' 0],xq2);
-p25_full = spline(x2,[0 p25.' 0],xq2);
+p21_full = interp1(x2,p21.',xq2);
+p22_full = interp1(x2,p22.',xq2);
+p23_full = interp1(x2,p23.',xq2);
+p25_full = interp1(x2,p25.',xq2);
 
 x3 = linspace(1,length(p31),length(p31));
 xq3 = linspace(1,length(p31),length(glove_3_test(:,1)));
 
-p31_full = spline(x3,[0 p31.' 0],xq3);
-p32_full = spline(x3,[0 p32.' 0],xq3);
-p33_full = spline(x3,[0 p33.' 0],xq3);
-p35_full = spline(x3,[0 p35.' 0],xq3);
+p31_full = interp1(x3,p31.',xq3);
+p32_full = interp1(x3,p32.',xq3);
+p33_full = interp1(x3,p33.',xq3);
+p35_full = interp1(x3,p35.',xq3);
 %%
 R11 = corr(p11_full.', glove_1_test(:,1));
 R12 = corr(p12_full.', glove_1_test(:,2));
@@ -311,4 +312,3 @@ average_R1 = mean([R11, R12, R13, R15])
 average_R2 = mean([R21, R22, R23, R25])
 average_R3 = mean([R31, R32, R33, R35])
 average_R = mean([average_R1, average_R2, average_R3])
-

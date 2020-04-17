@@ -20,20 +20,22 @@ function [features] = get_features_release(clean_data,fs)
 %% Your code here (8 points)
     num_channels = length(clean_data(1,:));
     feature_1 = zeros(1,num_channels); %average time-domain voltage (LMP)
-    feature_2 = zeros(1,num_channels); %average amplitude in 20-60hz range
-    feature_3= zeros(1,num_channels); %average ampltidue in 75-115hz range
-    feature_4 = zeros(1,num_channels); %average amplitude in 125-160hz range
-    feature_5 = zeros(1,num_channels); %average amplitude in 160-175hz range
+    feature_2 = zeros(1,num_channels);
+    feature_3= zeros(1,num_channels);
+    feature_4 = zeros(1,num_channels); 
+    feature_5 = zeros(1,num_channels);
+    feature_6 = zeros(1,num_channels);
     for i = 1:num_channels
         feature_1(1,i) = mean(clean_data(:,i));
-        feature_2(1,i) = mean(bandpass(clean_data(:,i),fs,[20,60]));
-        feature_3(1,i) = mean(bandpass(clean_data(:,i),fs,[75,115]));
-        feature_4(1,i) = mean(bandpass(clean_data(:,i),fs,[125,160]));
-        feature_5(1,i) = mean(bandpass(clean_data(:,i),fs,[160,175]));
+        feature_2(1,i) = bandpower(clean_data(:,i),fs,[8,12]);
+        feature_3(1,i) = bandpower(clean_data(:,i),fs,[18,24]);
+        feature_4(1,i) = bandpower(clean_data(:,i),fs,[75,115]);
+        feature_5(1,i) = bandpower(clean_data(:,i),fs,[125,160]);
+        feature_6(1,i) = bandpower(clean_data(:,i),fs,[160,175]);
     end
     
 
-    features = [feature_1 feature_2 feature_3 feature_4 feature_5];
+    features = [feature_1 feature_2 feature_3 feature_4 feature_5 feature_6];
     
 end
 
