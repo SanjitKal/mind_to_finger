@@ -81,7 +81,7 @@ for i = 1:5
     glove_3_train_ds(:,i) = decimate(glove_2_train(:,i), chunk_sz);
 end
 %%
-
+% linear regression
 ecog_1_train_R_ext = [ecog_1_train_R; ecog_1_train_R(length(ecog_1_train_R(:,1)),:)];
 ecog_2_train_R_ext = [ecog_2_train_R; ecog_2_train_R(length(ecog_2_train_R(:,1)),:)];
 ecog_3_train_R_ext = [ecog_3_train_R; ecog_3_train_R(length(ecog_3_train_R(:,1)),:)];
@@ -106,6 +106,25 @@ f34 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glov
 f35 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,5));
 
 %%
+% polynomial regression
+% mvp_11 = MultiPolyRegress(ecog_1_train_R_ext, glove_1_train_ds(:,1), 3);
+% mvp_12 = MultiPolyRegress(ecog_1_train_R_ext, glove_1_train_ds(:,2), 3);
+% mvp_13 = MultiPolyRegress(ecog_1_train_R_ext, glove_1_train_ds(:,3), 3);
+% mvp_14 = MultiPolyRegress(ecog_1_train_R_ext, glove_1_train_ds(:,4), 3);
+% mvp_15 = MultiPolyRegress(ecog_1_train_R_ext, glove_1_train_ds(:,5), 3);
+% 
+% mvp_21 = MultiPolyRegress(ecog_2_train_R_ext, glove_2_train_ds(:,1), 3);
+% mvp_22 = MultiPolyRegress(ecog_2_train_R_ext, glove_2_train_ds(:,2), 3);
+% mvp_23 = MultiPolyRegress(ecog_2_train_R_ext, glove_2_train_ds(:,3), 3);
+% mvp_24 = MultiPolyRegress(ecog_2_train_R_ext, glove_2_train_ds(:,4), 3);
+% mvp_25 = MultiPolyRegress(ecog_2_train_R_ext, glove_2_train_ds(:,5), 3);
+% 
+% mvp_31 = MultiPolyRegress(ecog_3_train_R_ext, glove_3_train_ds(:,1), 3);
+% mvp_32 = MultiPolyRegress(ecog_3_train_R_ext, glove_3_train_ds(:,2), 3);
+% mvp_33 = MultiPolyRegress(ecog_3_train_R_ext, glove_3_train_ds(:,3), 3);
+% mvp_34 = MultiPolyRegress(ecog_3_train_R_ext, glove_3_train_ds(:,4), 3);
+% mvp_35 = MultiPolyRegress(ecog_3_train_R_ext, glove_3_train_ds(:,5), 3);
+%%
 ecog_1_test_R_ext = [ecog_1_test_R;zeros(1,length(ecog_1_test_R(1,:)))];
 ecog_2_test_R_ext = [ecog_2_test_R;zeros(1,length(ecog_2_test_R(1,:)))];
 ecog_3_test_R_ext = [ecog_3_test_R;zeros(1,length(ecog_3_test_R(1,:)))];
@@ -127,33 +146,61 @@ p32 = ecog_3_test_R_ext*f32;
 p33 = ecog_3_test_R_ext*f33;
 p34 = ecog_3_test_R_ext*f34;
 p35 = ecog_3_test_R_ext*f35;
-%% Producing predictions
+%%
+% %% Producing predictions
+% x1 = linspace(1, length(p11),length(p11));
+% xq1 = linspace(1,length(p11),length(ecog_1_test(:,1)));
+% 
+% p11_full = interp1(x1,p11.',xq1);
+% p12_full = interp1(x1,p12.',xq1);
+% p13_full = interp1(x1,p13.',xq1);
+% p14_full = interp1(x1,p14.',xq1);
+% p15_full = interp1(x1,p15.',xq1);
+% 
+% x2 = linspace(1,length(p21),length(p21));
+% xq2 = linspace(1,length(p21),length(ecog_2_test(:,1)));
+% 
+% p21_full = interp1(x2,p21.',xq2);
+% p22_full = interp1(x2,p22.',xq2);
+% p23_full = interp1(x2,p23.',xq2);
+% p24_full = interp1(x1,p24.',xq1);
+% p25_full = interp1(x2,p25.',xq2);
+% 
+% x3 = linspace(1,length(p31),length(p31));
+% xq3 = linspace(1,length(p31),length(ecog_3_test(:,1)));
+% 
+% p31_full = interp1(x3,p31.',xq3);
+% p32_full = interp1(x3,p32.',xq3);
+% p33_full = interp1(x3,p33.',xq3);
+% p34_full = interp1(x1,p34.',xq1);
+% p35_full = interp1(x3,p35.',xq3);
+%% Producing predictions (spline)
 x1 = linspace(1, length(p11),length(p11));
 xq1 = linspace(1,length(p11),length(ecog_1_test(:,1)));
 
-p11_full = interp1(x1,p11.',xq1);
-p12_full = interp1(x1,p12.',xq1);
-p13_full = interp1(x1,p13.',xq1);
-p14_full = interp1(x1,p14.',xq1);
-p15_full = interp1(x1,p15.',xq1);
+p11_full = spline(x1,[0 p11.' 0],xq1);
+p12_full = spline(x1,[0 p12.' 0],xq1);
+p13_full = spline(x1,[0 p13.' 0],xq1);
+p14_full = spline(x1,[0 p14.' 0],xq1);
+p15_full = spline(x1,[0 p15.' 0],xq1);
 
 x2 = linspace(1,length(p21),length(p21));
 xq2 = linspace(1,length(p21),length(ecog_2_test(:,1)));
 
-p21_full = interp1(x2,p21.',xq2);
-p22_full = interp1(x2,p22.',xq2);
-p23_full = interp1(x2,p23.',xq2);
-p24_full = interp1(x1,p24.',xq1);
-p25_full = interp1(x2,p25.',xq2);
+p21_full = spline(x2,[0 p21.' 0],xq2);
+p22_full = spline(x2,[0 p22.' 0],xq2);
+p23_full = spline(x2,[0 p23.' 0],xq2);
+p24_full = spline(x1,[0 p24.' 0],xq1);
+p25_full = spline(x2,[0 p25.' 0],xq2);
 
 x3 = linspace(1,length(p31),length(p31));
 xq3 = linspace(1,length(p31),length(ecog_3_test(:,1)));
 
-p31_full = interp1(x3,p31.',xq3);
-p32_full = interp1(x3,p32.',xq3);
-p33_full = interp1(x3,p33.',xq3);
-p34_full = interp1(x1,p34.',xq1);
-p35_full = interp1(x3,p35.',xq3);
+p31_full = spline(x3,[0 p31.' 0],xq3);
+p32_full = spline(x3,[0 p32.' 0],xq3);
+p33_full = spline(x3,[0 p33.' 0],xq3);
+p34_full = spline(x1,[0 p34.' 0],xq1);
+p35_full = spline(x3,[0 p35.' 0],xq3);
 %% Package predictions for submission
 s1_preds = [p11_full.' p12_full.' p13_full.' p14_full.' p15_full.'];
 s2_preds = [p21_full.' p22_full.' p23_full.' p24_full.' p25_full.'];
