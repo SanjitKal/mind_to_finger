@@ -53,6 +53,8 @@ ecog_1_test_feats = getWindowedFeats(ecog_1_test, 1000, .1, .05);
 ecog_2_test_feats = getWindowedFeats(ecog_2_test, 1000, .1, .05);
 %%
 ecog_3_test_feats = getWindowedFeats(ecog_3_test, 1000, .1, .05);
+
+
 %% Create R matrix
 ecog_1_train_R = create_R_matrix(ecog_1_train_feats, 3);
 ecog_2_train_R = create_R_matrix(ecog_2_train_feats, 3);
@@ -78,14 +80,13 @@ glove_3_train_ds = zeros(num_chunks, length(glove_3_train(1,:)));
 for i = 1:5
     glove_1_train_ds(:,i) = decimate(glove_1_train(:,i), chunk_sz);
     glove_2_train_ds(:,i) = decimate(glove_2_train(:,i), chunk_sz);
-    glove_3_train_ds(:,i) = decimate(glove_2_train(:,i), chunk_sz);
+    glove_3_train_ds(:,i) = decimate(glove_3_train(:,i), chunk_sz);
 end
-%%
-% linear regression
+%% Extend the R matrices by one row to match downsampled dataglove data size
 ecog_1_train_R_ext = [ecog_1_train_R; ecog_1_train_R(length(ecog_1_train_R(:,1)),:)];
 ecog_2_train_R_ext = [ecog_2_train_R; ecog_2_train_R(length(ecog_2_train_R(:,1)),:)];
 ecog_3_train_R_ext = [ecog_3_train_R; ecog_3_train_R(length(ecog_3_train_R(:,1)),:)];
-
+%% Create the filters for linear regression
 %create filters
 f11 = mldivide(ecog_1_train_R_ext.'*ecog_1_train_R_ext,ecog_1_train_R_ext.'*glove_1_train_ds(:,1));
 f12 = mldivide(ecog_1_train_R_ext.'*ecog_1_train_R_ext,ecog_1_train_R_ext.'*glove_1_train_ds(:,2));
@@ -105,102 +106,153 @@ f33 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glov
 f34 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,4));
 f35 = mldivide(ecog_3_train_R_ext.'*ecog_3_train_R_ext,ecog_3_train_R_ext.'*glove_3_train_ds(:,5));
 
-%%
-% polynomial regression
-% mvp_11 = MultiPolyRegress(ecog_1_train_R_ext, glove_1_train_ds(:,1), 3);
-% mvp_12 = MultiPolyRegress(ecog_1_train_R_ext, glove_1_train_ds(:,2), 3);
-% mvp_13 = MultiPolyRegress(ecog_1_train_R_ext, glove_1_train_ds(:,3), 3);
-% mvp_14 = MultiPolyRegress(ecog_1_train_R_ext, glove_1_train_ds(:,4), 3);
-% mvp_15 = MultiPolyRegress(ecog_1_train_R_ext, glove_1_train_ds(:,5), 3);
-% 
-% mvp_21 = MultiPolyRegress(ecog_2_train_R_ext, glove_2_train_ds(:,1), 3);
-% mvp_22 = MultiPolyRegress(ecog_2_train_R_ext, glove_2_train_ds(:,2), 3);
-% mvp_23 = MultiPolyRegress(ecog_2_train_R_ext, glove_2_train_ds(:,3), 3);
-% mvp_24 = MultiPolyRegress(ecog_2_train_R_ext, glove_2_train_ds(:,4), 3);
-% mvp_25 = MultiPolyRegress(ecog_2_train_R_ext, glove_2_train_ds(:,5), 3);
-% 
-% mvp_31 = MultiPolyRegress(ecog_3_train_R_ext, glove_3_train_ds(:,1), 3);
-% mvp_32 = MultiPolyRegress(ecog_3_train_R_ext, glove_3_train_ds(:,2), 3);
-% mvp_33 = MultiPolyRegress(ecog_3_train_R_ext, glove_3_train_ds(:,3), 3);
-% mvp_34 = MultiPolyRegress(ecog_3_train_R_ext, glove_3_train_ds(:,4), 3);
-% mvp_35 = MultiPolyRegress(ecog_3_train_R_ext, glove_3_train_ds(:,5), 3);
-%%
-ecog_1_test_R_ext = [ecog_1_test_R;zeros(1,length(ecog_1_test_R(1,:)))];
-ecog_2_test_R_ext = [ecog_2_test_R;zeros(1,length(ecog_2_test_R(1,:)))];
-ecog_3_test_R_ext = [ecog_3_test_R;zeros(1,length(ecog_3_test_R(1,:)))];
+%% Lasso regression for s1
+[lasso_s11, inf11] = lasso(ecog_1_train_R_ext, glove_1_train_ds(:,1),'CV',10);
+[lasso_s12, inf12] = lasso(ecog_1_train_R_ext, glove_1_train_ds(:,2),'CV',10);
+[lasso_s13, inf13] = lasso(ecog_1_train_R_ext, glove_1_train_ds(:,3),'CV',10);
+[lasso_s15, inf15] = lasso(ecog_1_train_R_ext, glove_1_train_ds(:,5),'CV',10);
 
-p11 = ecog_1_test_R_ext*f11;
-p12 = ecog_1_test_R_ext*f12;
-p13 = ecog_1_test_R_ext*f13;
-p14 = ecog_1_test_R_ext*f14;
-p15 = ecog_1_test_R_ext*f15;
+%% Lasso regression for s2
+[lasso_s21, inf21] = lasso(ecog_2_train_R_ext, glove_2_train_ds(:,1),'CV',10);
+[lasso_s22, inf22] = lasso(ecog_2_train_R_ext, glove_2_train_ds(:,2),'CV',10);
+[lasso_s23, inf23] = lasso(ecog_2_train_R_ext, glove_2_train_ds(:,3),'CV',10);
+[lasso_s25, inf25] = lasso(ecog_2_train_R_ext, glove_2_train_ds(:,5),'CV',10);
 
-p21 = ecog_2_test_R_ext*f21;
-p22 = ecog_2_test_R_ext*f22;
-p23 = ecog_2_test_R_ext*f23;
-p24 = ecog_2_test_R_ext*f24;
-p25 = ecog_2_test_R_ext*f25;
- 
-p31 = ecog_3_test_R_ext*f31;
-p32 = ecog_3_test_R_ext*f32;
-p33 = ecog_3_test_R_ext*f33;
-p34 = ecog_3_test_R_ext*f34;
-p35 = ecog_3_test_R_ext*f35;
-%%
-% %% Producing predictions
-% x1 = linspace(1, length(p11),length(p11));
-% xq1 = linspace(1,length(p11),length(ecog_1_test(:,1)));
+%% Lasso regression for s3
+[lasso_s31, inf31] = lasso(ecog_3_train_R_ext, glove_3_train_ds(:,1),'CV',10);
+[lasso_s32, inf32] = lasso(ecog_3_train_R_ext, glove_3_train_ds(:,2),'CV',10);
+[lasso_s33, inf33] = lasso(ecog_3_train_R_ext, glove_3_train_ds(:,3),'CV',10);
+[lasso_s35, inf35] = lasso(ecog_3_train_R_ext, glove_3_train_ds(:,5),'CV',10);
+
+%% Compute predictions from lasso model
+p11 = ecog_1_test_R_ext*lasso_s11(:, inf11.Index1SE);
+p12 = ecog_1_test_R_ext*lasso_s12(:, inf12.Index1SE);
+p13 = ecog_1_test_R_ext*lasso_s13(:, inf13.Index1SE);
+p15 = ecog_1_test_R_ext*lasso_s15(:, inf15.Index1SE);
+
+
+p21 = ecog_2_test_R_ext*lasso_s21(:, inf21.Index1SE);
+p22 = ecog_2_test_R_ext*lasso_s22(:, inf22.Index1SE);
+p23 = ecog_2_test_R_ext*lasso_s23(:, inf23.Index1SE);
+p25 = ecog_2_test_R_ext*lasso_s25(:, inf25.Index1SE);
+
+
+p31 = ecog_3_test_R_ext*lasso_s31(:, inf31.Index1SE);
+p32 = ecog_3_test_R_ext*lasso_s32(:, inf32.Index1SE);
+p33 = ecog_3_test_R_ext*lasso_s33(:, inf33.Index1SE);
+p35 = ecog_3_test_R_ext*lasso_s35(:, inf35.Index1SE);
+
+%% Train a neural net
+% net = fitnet(15);
+% [net_s11,tr] = train(net,ecog_1_train_R_ext.',glove_1_train_ds(:,1).');
+% nntraintool
+% nntraintool('close')
+% [net_s12,tr] = train(net,ecog_1_train_R_ext.',glove_1_train_ds(:,2).');
+% nntraintool
+% nntraintool('close')
+% [net_s13,tr] = train(net,ecog_1_train_R_ext.',glove_1_train_ds(:,3).');
+% nntraintool
+% nntraintool('close')
+% [net_s15,tr] = train(net,ecog_1_train_R_ext.',glove_1_train_ds(:,5).');
+% nntraintool
+% nntraintool('close')
 % 
-% p11_full = interp1(x1,p11.',xq1);
-% p12_full = interp1(x1,p12.',xq1);
-% p13_full = interp1(x1,p13.',xq1);
-% p14_full = interp1(x1,p14.',xq1);
-% p15_full = interp1(x1,p15.',xq1);
+% [net_s21,tr] = train(net,ecog_2_train_R_ext.',glove_2_train_ds(:,1).');
+% nntraintool
+% nntraintool('close')
+% [net_s22,tr] = train(net,ecog_2_train_R_ext.',glove_2_train_ds(:,2).');
+% nntraintool
+% nntraintool('close')
+% [net_s23,tr] = train(net,ecog_2_train_R_ext.',glove_2_train_ds(:,3).');
+% nntraintool
+% nntraintool('close')
+% [net_s25,tr] = train(net,ecog_2_train_R_ext.',glove_2_train_ds(:,5).');
+% nntraintool
+% nntraintool('close')
 % 
-% x2 = linspace(1,length(p21),length(p21));
-% xq2 = linspace(1,length(p21),length(ecog_2_test(:,1)));
+% [net_s31,tr] = train(net,ecog_3_train_R_ext.',glove_3_train_ds(:,1).');
+% nntraintool
+% nntraintool('close')
+% [net_s32,tr] = train(net,ecog_3_train_R_ext.',glove_3_train_ds(:,2).');
+% nntraintool
+% nntraintool('close')
+% [net_s33,tr] = train(net,ecog_3_train_R_ext.',glove_3_train_ds(:,3).');
+% nntraintool
+% nntraintool('close')
+% [net_s35,tr] = train(net,ecog_3_train_R_ext.',glove_3_train_ds(:,5).');
+% nntraintool
+% nntraintool('close')
+
+%% Produce predictions for linear regression
+% ecog_1_test_R_ext = [ecog_1_test_R;zeros(1,length(ecog_1_test_R(1,:)))];
+% ecog_2_test_R_ext = [ecog_2_test_R;zeros(1,length(ecog_2_test_R(1,:)))];
+% ecog_3_test_R_ext = [ecog_3_test_R;zeros(1,length(ecog_3_test_R(1,:)))];
 % 
-% p21_full = interp1(x2,p21.',xq2);
-% p22_full = interp1(x2,p22.',xq2);
-% p23_full = interp1(x2,p23.',xq2);
-% p24_full = interp1(x1,p24.',xq1);
-% p25_full = interp1(x2,p25.',xq2);
+% p11 = ecog_1_test_R_ext*f11;
+% p12 = ecog_1_test_R_ext*f12;
+% p13 = ecog_1_test_R_ext*f13;
+% p14 = ecog_1_test_R_ext*f14;
+% p15 = ecog_1_test_R_ext*f15;
 % 
-% x3 = linspace(1,length(p31),length(p31));
-% xq3 = linspace(1,length(p31),length(ecog_3_test(:,1)));
+% p21 = ecog_2_test_R_ext*f21;
+% p22 = ecog_2_test_R_ext*f22;
+% p23 = ecog_2_test_R_ext*f23;
+% p24 = ecog_2_test_R_ext*f24;
+% p25 = ecog_2_test_R_ext*f25;
+%  
+% p31 = ecog_3_test_R_ext*f31;
+% p32 = ecog_3_test_R_ext*f32;
+% p33 = ecog_3_test_R_ext*f33;
+% p34 = ecog_3_test_R_ext*f34;
+% p35 = ecog_3_test_R_ext*f35;
+% %%
+% p11 = net_s11(ecog_1_test_R_ext);
+% p12 = net_s12(ecog_1_test_R_ext);
+% p13 = net_s13(ecog_1_test_R_ext);
+% p15 = net_s15(ecog_1_test_R_ext);
 % 
-% p31_full = interp1(x3,p31.',xq3);
-% p32_full = interp1(x3,p32.',xq3);
-% p33_full = interp1(x3,p33.',xq3);
-% p34_full = interp1(x1,p34.',xq1);
-% p35_full = interp1(x3,p35.',xq3);
-%% Producing predictions (spline)
+% p21 = net_s21(ecog_2_test_R_ext);
+% p22 = net_s22(ecog_2_test_R_ext);
+% p23 = net_s23(ecog_2_test_R_ext);
+% p25 = net_s25(ecog_2_test_R_ext);
+% 
+% p31 = net_s31(ecog_3_test_R_ext);
+% p32 = net_s32(ecog_3_test_R_ext);
+% p33 = net_s33(ecog_3_test_R_ext);
+% p35 = net_s35(ecog_3_test_R_ext);
+
+
+
+%% Interpolate predictions
 x1 = linspace(1, length(p11),length(p11));
 xq1 = linspace(1,length(p11),length(ecog_1_test(:,1)));
 
-p11_full = spline(x1,[0 p11.' 0],xq1);
-p12_full = spline(x1,[0 p12.' 0],xq1);
-p13_full = spline(x1,[0 p13.' 0],xq1);
-p14_full = spline(x1,[0 p14.' 0],xq1);
-p15_full = spline(x1,[0 p15.' 0],xq1);
+p11_full = interp1(x1,p11.',xq1);
+p12_full = interp1(x1,p12.',xq1);
+p13_full = interp1(x1,p13.',xq1);
+p15_full = interp1(x1,p15.',xq1);
 
 x2 = linspace(1,length(p21),length(p21));
 xq2 = linspace(1,length(p21),length(ecog_2_test(:,1)));
 
-p21_full = spline(x2,[0 p21.' 0],xq2);
-p22_full = spline(x2,[0 p22.' 0],xq2);
-p23_full = spline(x2,[0 p23.' 0],xq2);
-p24_full = spline(x1,[0 p24.' 0],xq1);
-p25_full = spline(x2,[0 p25.' 0],xq2);
+p21_full = interp1(x2,p21.',xq2);
+p22_full = interp1(x2,p22.',xq2);
+p23_full = interp1(x2,p23.',xq2);
+p25_full = interp1(x2,p25.',xq2);
 
 x3 = linspace(1,length(p31),length(p31));
 xq3 = linspace(1,length(p31),length(ecog_3_test(:,1)));
 
-p31_full = spline(x3,[0 p31.' 0],xq3);
-p32_full = spline(x3,[0 p32.' 0],xq3);
-p33_full = spline(x3,[0 p33.' 0],xq3);
-p34_full = spline(x1,[0 p34.' 0],xq1);
-p35_full = spline(x3,[0 p35.' 0],xq3);
+p31_full = interp1(x3,p31.',xq3);
+p32_full = interp1(x3,p32.',xq3);
+p33_full = interp1(x3,p33.',xq3);
+p35_full = interp1(x3,p35.',xq3);
+%% Produce dummy predictions for finger 4
+
+p14_full = zeros(147500,1).';
+p24_full = zeros(147500,1).';
+p34_full = zeros(147500,1).';
+
 %% Package predictions for submission
 s1_preds = [p11_full.' p12_full.' p13_full.' p14_full.' p15_full.'];
 s2_preds = [p21_full.' p22_full.' p23_full.' p24_full.' p25_full.'];
